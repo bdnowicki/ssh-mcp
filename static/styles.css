@@ -1,0 +1,45 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: #1a1a1a;
+  color: #f0f0f0;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+#session-header {
+  padding: 8px 16px;
+  background: #252525;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+}
+
+#session-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#connection-status {
+  font-size: 12px;
+  color: #888;
+}
+
+#terminal-container {
+  flex: 1;
+  padding: 4px;
+}
+
+#terminal {
+  height: calc(100vh - 45px);
+}
