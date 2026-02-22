@@ -1,0 +1,236 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: #1a1a1a;
+  color: #f0f0f0;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  overflow: hidden;
+}
+
+/* ── App Layout ── */
+
+#app {
+  display: flex;
+  height: 100vh;
+}
+
+/* ── Sidebar ── */
+
+#sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: #1e1e1e;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#sidebar-header {
+  padding: 12px 16px;
+  background: #252525;
+  border-bottom: 1px solid #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#session-list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* ── Session Items ── */
+
+.session-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid #2a2a2a;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s;
+}
+
+.session-item:hover {
+  background: #2a2a2a;
+}
+
+.session-item.active {
+  border-left-color: #4caf50;
+  background: #242424;
+}
+
+.session-item .session-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.session-item .session-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.session-item .session-remove {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.session-item:hover .session-remove {
+  opacity: 1;
+}
+
+.session-item .session-remove:hover {
+  color: #f44336;
+}
+
+.session-item .session-host {
+  font-size: 11px;
+  color: #888;
+}
+
+.session-item .session-status {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.session-item .session-status.connected {
+  color: #4caf50;
+}
+
+.session-item .session-status.disconnected {
+  color: #f44336;
+}
+
+.no-sessions {
+  padding: 16px;
+  color: #666;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ── Main Content ── */
+
+#main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Terminal Header ── */
+
+#terminal-header {
+  padding: 8px 16px;
+  background: #252525;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+}
+
+#terminal-header .header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#terminal-header .session-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+#terminal-header .connection-status {
+  font-size: 12px;
+  color: #888;
+}
+
+#terminal-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#terminal-header .control-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #ccc;
+}
+
+#terminal-header .control-group label {
+  cursor: pointer;
+  user-select: none;
+}
+
+#terminal-header .control-group input[type="checkbox"] {
+  accent-color: #4caf50;
+  cursor: pointer;
+}
+
+#terminal-header .control-group select {
+  background: #1a1a1a;
+  color: #f0f0f0;
+  border: 1px solid #444;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+#terminal-header .control-group select:focus {
+  border-color: #4caf50;
+}
+
+/* ── Terminal Area ── */
+
+#terminal-container {
+  display: none;
+  flex: 1;
+  padding: 4px;
+  overflow: hidden;
+}
+
+#terminal-container.visible {
+  display: flex;
+}
+
+#dashboard-terminal {
+  flex: 1;
+  height: 100%;
+}
+
+/* ── Placeholder ── */
+
+#placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 16px;
+  user-select: none;
+}
+
+#terminal-container.visible ~ #placeholder {
+  display: none;
+}

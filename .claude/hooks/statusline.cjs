@@ -99,6 +99,10 @@ process.stdin.on('end', () => {
       const resetTs = parseInt(usage['5h-reset'] || '0', 10);
       const pct = Math.round(utilization * 100);
 
+      // Progress bar (10 segments, same style as context window)
+      const filled = Math.floor(pct / 10);
+      const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
+
       // Color based on utilization
       let color;
       if (pct < 50)       color = '\x1b[32m';  // green
@@ -106,7 +110,7 @@ process.stdin.on('end', () => {
       else if (pct < 90)  color = '\x1b[38;5;208m'; // orange
       else                color = '\x1b[31m';  // red
 
-      // Format reset time
+      // Format reset time with timezone
       let resetStr = '';
       if (resetTs > 0) {
         const d = new Date(resetTs * 1000);
@@ -114,10 +118,11 @@ process.stdin.on('end', () => {
         const m = d.getMinutes();
         const ampm = h >= 12 ? 'pm' : 'am';
         const h12 = h % 12 || 12;
-        resetStr = m > 0 ? ` ↻${h12}:${String(m).padStart(2,'0')}${ampm}` : ` ↻${h12}${ampm}`;
+        const time = m > 0 ? `${h12}:${String(m).padStart(2,'0')}${ampm}` : `${h12}${ampm}`;
+        resetStr = ` ↻ ${time}`;
       }
 
-      usageLabel = ` │ ${color}⚡${pct}%${resetStr}\x1b[0m`;
+      usageLabel = ` │ ${color}${bar} ${pct}%${resetStr}\x1b[0m`;
 
       // Refresh cache if stale (older than 2 minutes)
       const age = Date.now() - (usage.fetched_at || 0);

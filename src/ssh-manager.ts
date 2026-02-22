@@ -15,14 +15,20 @@ import type {
   SessionData,
 } from './types.js';
 
-const MAX_BUFFER_LINES = 500;
+const DEFAULT_MAX_BUFFER_LINES = 500;
 
 export class SSHManager {
   private sessions = new Map<string, SessionData>();
+  private dashboardClients = new Set<WebSocket>();
 
   async connect(config: SSHSessionConfig): Promise<SSHSessionInfo> {
-    if (this.sessions.has(config.name)) {
-      throw new Error(`Session "${config.name}" already exists`);
+    const existing = this.sessions.get(config.name);
+    if (existing) {
+      if (existing.info.status === 'disconnected') {
+        this.sessions.delete(config.name);
+      } else {
+        throw new Error(`Session "${config.name}" already exists`);
+      }
     }
 
     const client = new Client();
@@ -74,14 +80,17 @@ export class SSHManager {
       isExecuting: false,
       backgroundTasks: new Map(),
       activeStream: null,
+      maxBufferLines: DEFAULT_MAX_BUFFER_LINES,
     };
 
     client.on('close', () => {
       sessionData.info.status = 'disconnected';
       sessionData.activeStream = null;
+      this.broadcastDashboardUpdate({ type: 'session_updated', session: sessionData.info });
     });
 
     this.sessions.set(config.name, sessionData);
+    this.broadcastDashboardUpdate({ type: 'session_added', session: info });
     return info;
   }
 
@@ -138,7 +147,7 @@ export class SSHManager {
     }
 
     session.client.destroy();
-    this.sessions.delete(sessionName);
+    this.broadcastDashboardUpdate({ type: 'session_updated', session: session.info });
   }
 
   listSessions(): SSHSessionInfo[] {
@@ -220,17 +229,71 @@ export class SSHManager {
     return this.sessions.has(name);
   }
 
+  removeSession(sessionName: string): void {
+    const session = this.sessions.get(sessionName);
+    if (!session) return;
+    if (session.info.status === 'connected') {
+      this.disconnect(sessionName);
+    }
+    this.sessions.delete(sessionName);
+    this.broadcastDashboardUpdate({ type: 'session_removed', sessionName });
+  }
+
   cleanup(): void {
     for (const name of Array.from(this.sessions.keys())) {
       try {
-        this.disconnect(name);
+        this.removeSession(name);
       } catch {
         // best-effort cleanup
       }
     }
   }
 
+  setBufferSize(sessionName: string, lines: number): void {
+    const session = this.sessions.get(sessionName);
+    if (!session) {
+      throw new Error(`Session "${sessionName}" not found`);
+    }
+    const clamped = Math.max(50, Math.min(10000, lines));
+    session.maxBufferLines = clamped;
+    while (session.outputBuffer.length > clamped) {
+      session.outputBuffer.shift();
+    }
+  }
+
+  getBufferSize(sessionName: string): number {
+    const session = this.sessions.get(sessionName);
+    if (!session) {
+      throw new Error(`Session "${sessionName}" not found`);
+    }
+    return session.maxBufferLines;
+  }
+
+  addDashboardClient(ws: WebSocket): void {
+    this.dashboardClients.add(ws);
+    try {
+      ws.send(JSON.stringify({ type: 'session_list', sessions: this.listSessions() }));
+    } catch {
+      // ignore send errors
+    }
+  }
+
+  removeDashboardClient(ws: WebSocket): void {
+    this.dashboardClients.delete(ws);
+  }
+
   // --- Private helpers ---
+
+  private broadcastDashboardUpdate(message: object): void {
+    const data = JSON.stringify(message);
+    for (const ws of this.dashboardClients) {
+      try {
+        ws.send(data);
+      } catch {
+        this.dashboardClients.delete(ws);
+      }
+    }
+  }
 
   private broadcastOutput(sessionName: string, data: string): void {
     const session = this.sessions.get(sessionName);
@@ -241,7 +304,7 @@ export class SSHManager {
 
     // Buffer the output
     session.outputBuffer.push(normalized);
-    while (session.outputBuffer.length > MAX_BUFFER_LINES) {
+    while (session.outputBuffer.length > session.maxBufferLines) {
       session.outputBuffer.shift();
     }
 
@@ -270,6 +333,8 @@ export class SSHManager {
 
     session.isExecuting = true;
     const queued = session.commandQueue.shift()!;
+
+    this.broadcastOutput(sessionName, `\x1b[36m\x1b[2m$ ${queued.command}\x1b[0m\r\n`);
 
     this.executeCommand(session, queued, sessionName).finally(() => {
       session.isExecuting = false;

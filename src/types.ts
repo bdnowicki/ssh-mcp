@@ -49,6 +49,12 @@ export interface QueuedCommand {
   reject: (error: Error) => void;
 }
 
+export interface CommandHistoryEntry {
+  command: string;
+  source: CommandSource;
+  timestamp: string;
+}
+
 export interface SessionData {
   config: SSHSessionConfig;
   info: SSHSessionInfo;
@@ -60,4 +66,5 @@ export interface SessionData {
   isExecuting: boolean;
   backgroundTasks: Map<string, BackgroundTask>;
   activeStream: ClientChannel | null;
+  maxBufferLines: number;
 }

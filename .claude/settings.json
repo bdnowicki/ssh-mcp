@@ -2,5 +2,9 @@
   "statusLine": {
     "type": "command",
     "command": "node .claude/hooks/statusline.cjs"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
   }
 }

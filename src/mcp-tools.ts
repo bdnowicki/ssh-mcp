@@ -204,10 +204,11 @@ export function registerTools(
             };
           }
           const url = `${getBaseUrl()}/session/${params.sessionName}`;
+          const dashboardUrl = `${getBaseUrl()}/`;
           return {
             content: [{
               type: 'text',
-              text: JSON.stringify({ sessionName: params.sessionName, url }, null, 2),
+              text: JSON.stringify({ sessionName: params.sessionName, url, dashboardUrl }, null, 2),
             }],
           };
         }
