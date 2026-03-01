@@ -3,4 +3,4 @@ dist/
 *.tgz
 *.png
 .playwright-mcp/
-.mcp.json
+
